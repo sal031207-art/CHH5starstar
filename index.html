@@ -3864,7 +3864,7 @@ function rich(text){
   const isBullet=line=>/^[•●·‧]\s*/.test(line);
   const isDefinition=line=>/^(時間|會議|路線|思想理論|發表時間及會議名稱|發表時間和會議名稱|理論地位|民族|聚居地區|主要信仰|清廷統治政策|西南地區|特色|背景|目的|內容|措施內容|措施|影響和唐室對策|影響與唐室對策|新政主要內容|條約主要內容|政策內容|成效|效果|結果|作用|概況|例子|原因|影響|優點|缺點|特點|原則|性質|評價|職責|長官名稱|分類|兵源|數額|期限|待遇|意義|貢獻|局限|方法|對象|條件|定義|沿革|說明|問題|制度|政策|方式|範圍|備註|資料|來源)[：:︰]/.test(line);
   const isCallout=line=>/^(提示｜|補充｜|例子｜)/.test(line);
-  const isHeading=line=>!/[①-⑳]/.test(line)&&(/^[（(]\d+[）)]/.test(line)||/^(考問重點|記憶圖示|內容圖解|史事述評|評論者觀點|論據（節錄）)$/.test(line)||([...line].length<=34&&!/[。；！？]/.test(line)&&/(?:簡表|比較表|關係|特點|原則|概況|背景|內容|影響|成效|優點|缺點|敗壞|作用|評價|方法|定義|分類|種類)$/.test(line))||(/^[一二三四五六七八九十百]+/.test(line)&&[...line].length<=30&&!/[。；！？，,：:]/.test(line)));
+  const isHeading=line=>/^[（(]\d+[）)]/.test(line)||(!/[①-⑳]/.test(line)&&(/^(考問重點|記憶圖示|內容圖解|史事述評|評論者觀點|論據（節錄）)$/.test(line)||([...line].length<=34&&!/[。；！？]/.test(line)&&/(?:簡表|比較表|關係|特點|原則|概況|背景|內容|影響|成效|優點|缺點|敗壞|作用|評價|方法|定義|分類|種類)$/.test(line))||(/^[一二三四五六七八九十百]+/.test(line)&&[...line].length<=30&&!/[。；！？，,：:]/.test(line))));
   const startsStructural=line=>isTableRow(line)||isCircled(line)||isRomanStart(line)||isNumbered(line)||isBullet(line)||isDefinition(line)||isHeading(line)||isCallout(line)||/^小標｜/.test(line);
   const canContinue=line=>line&&!startsStructural(line);
   const shouldContinue=(previous,next)=>canContinue(previous)&&next&&!startsStructural(next)&&(!/[。！？]$/.test(previous)||/[；;]$/.test(previous));
@@ -4187,7 +4187,38 @@ function rich(text){
         i++;
         while(i<lines.length&&shouldContinue(body,lines[i])){body+=lines[i];i++;}
         out.push(`<h3 class="argumentHeading"><span>${inline(headingWithBody[1])}</span>${inline(headingWithBody[2].trim())}</h3>`);
-        out.push(/miniEnumeration/.test(formatText(body))?`<div class="para">${formatText(body)}</div>`:`<p class="para">${formatText(body)}</p>`);
+        if(new RegExp(`^[${circled}]`).test(body)){
+          const items=body.split(/\n+/).filter(Boolean).map(item=>({
+            marker:item[0],
+            body:item.slice(1).trim(),
+            notes:[]
+          }));
+          while(i<lines.length){
+            if(isCircled(lines[i])){
+              items.push({
+                marker:lines[i][0],
+                body:lines[i].slice(1).trim(),
+                notes:[]
+              });
+              i++;
+              continue;
+            }
+            if(!startsStructural(lines[i])){
+              const last=items[items.length-1];
+              if(last){
+                last.body=`${last.body}${
+                  /[，。；：！？）」』】]$/.test(last.body)?'':' '
+                }${lines[i].trim()}`;
+              }
+              i++;
+              continue;
+            }
+            break;
+          }
+          out.push(listHtml(items,'circled'));
+        }else{
+          out.push(/miniEnumeration/.test(formatText(body))?`<div class="para">${formatText(body)}</div>`:`<p class="para">${formatText(body)}</p>`);
+        }
         continue;
       }
     }
