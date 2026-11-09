@@ -61,7 +61,7 @@
 html{
   max-width:100%;
   overflow-x:clip;
-  scroll-behavior:smooth;
+  scroll-behavior:auto;
   scroll-padding-top:calc(var(--header-h) + 18px);
 }
 
@@ -339,7 +339,7 @@ main{
   padding:36px clamp(24px,4vw,64px) 88px;
 }
 #main.view-enter{
-  animation:mainViewEnter .28s cubic-bezier(.22,.72,.24,1) backwards;
+  animation:none;
 }
 @keyframes mainViewEnter{
   from{opacity:0;transform:translateY(6px)}
@@ -3294,7 +3294,7 @@ summary:focus-visible {
 }
 
 #main.view-enter {
-  animation: editorialPageIn .31s var(--ease-out) both;
+  animation: none;
 }
 
 @keyframes editorialPageIn {
@@ -3842,12 +3842,12 @@ function toast(s){$('#toast').textContent=s;$('#toast').style.display='block';se
 function textOf(l){return [l.group,l.title,l.summary,...(l.tags||[]),...(l.sections||[]).map(s=>s.text||'')].join(' ')}
 function visible(){return D.lessons.filter(l=>(filter==='全部'||l.group===filter)&&(!onlySaved||state.saved.includes(l.id))&&(!query||textOf(l).includes(query)))}
 function updateIndex(){const rows=visible();$('#count').textContent=`${onlySaved?'已收藏 · ':''}${rows.length} 課 · ${D.lessons.filter(l=>state.done.includes(l.id)).length} 課已溫習`;$('#index').innerHTML=['甲部','乙部','制度史'].map(g=>{const ls=rows.filter(l=>l.group===g);return ls.length?`<div class="groupname">${g==='甲部'?'甲部 · 歷代發展':g==='乙部'?'乙部 · 近現代中國':'專題 · 制度與政治演變'}</div>${ls.map(l=>`<button class="indexitem ${current?.id===l.id?'selected':''}" data-lesson="${esc(l.id)}"><span>${state.done.includes(l.id)?'✓':String(D.lessons.indexOf(l)+1).padStart(2,'0')}</span>${esc(l.title)}</button>`).join('')}`:''}).join('')||'<p class="empty">沒有相符課題。</p>';document.querySelectorAll('[data-filter]').forEach(b=>b.classList.toggle('active',b.dataset.filter===filter))}
-function navigate(v,scroll=true){current=null;updateIndex();if(v==='home')home();else if(v==='courses')courses();else if(v==='exams')examLibrary();else if(v==='method')method();if(scroll)window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});closeMobileNav();document.querySelectorAll('.siteNav [data-view],.mobileNav [data-view]').forEach(b=>{const on=b.dataset.view===v;b.classList.toggle('active',on);b.setAttribute('aria-current',on?'page':'false')})}
+function navigate(v,scroll=true){current=null;updateIndex();if(v==='home')home();else if(v==='courses')courses();else if(v==='exams')examLibrary();else if(v==='method')method();if(scroll)window.scrollTo({top:0,behavior:'instant'});closeMobileNav();document.querySelectorAll('.siteNav [data-view],.mobileNav [data-view]').forEach(b=>{const on=b.dataset.view===v;b.classList.toggle('active',on);b.setAttribute('aria-current',on?'page':'false')})}
 function setHash(h){try{history.replaceState(null,'','#'+h)}catch{}}
 function card(l){return `<button class="card" data-lesson="${esc(l.id)}"><div class="chips"><span class="chip">${esc(l.group)}</span>${state.done.includes(l.id)?'<span class="chip">已溫習 ✓</span>':''}</div><h3>${esc(l.title)}</h3><p>${esc(l.summary)}</p><footer><span>5**筆記 · 中文地圖 · 全題索引</span><span>進入 →</span></footer></button>`}
 function home(){setHash('home');$('#main').innerHTML=`<section class="hero"><div class="eyebrow">HKDSE CHINESE HISTORY · COMPLETE OFFLINE EDITION</div><h1>史實有據，<br>論證有力。</h1><p>沿歷史脈絡重整史實、制度與史論。章節、正文與表格均可離線閱讀；2012–2026 試題已按課題歸檔，全部題組均附原卷頁。</p><button class="primary" data-view="courses">開始研習　↗</button><span class="offlineBadge">● 已內置閱讀資料 · 毋須登入</span></section><div class="stats"><div class="stat"><b>${D.lessons.filter(l=>l.group==='甲部').length}</b><small>甲部課題</small></div><div class="stat"><b>${D.lessons.filter(l=>l.group==='乙部').length}</b><small>乙部課題</small></div><div class="stat"><b>${D.lessons.filter(l=>l.group==='制度史').length}</b><small>指定制度專題</small></div><div class="stat"><b>${D.exams.length}</b><small>2012–2026 題組</small></div></div><div class="sectionline"><h2>循課題，建立歷史全局</h2><span>THE SYLLABUS</span></div><div class="grid">${[['甲部','01','甲部','從西周封建到清代統治，掌握制度沿革、朝局變化與民族關係。'],['乙部','02','乙部','以事序串連外患、圖強、革命與建設，辨清轉折與延續。'],['制度史','03','專題 · 制度與政治演變','均田、兵制、科舉八個專題，逐項分析內容、成效與流弊。']].map(([g,n,t,p])=>`<button class="card" data-category="${g}"><span class="num">${n} /</span><h3>${t}</h3><p>${p}</p><footer><span>${D.lessons.filter(l=>l.group===g).length} 課</span><span>進入 →</span></footer></button>`).join('')}</div><div class="sectionline"><h2>由資料，走向有根據的判斷</h2><span>EVIDENCE & ARGUMENT</span></div><div class="grid">${[['論點','中心句先回答題目，界定分析範圍及比較準則。'],['論據','引用題附資料，並加入可核實的政策、人物、年份與史例。'],['論證','交代史例如何支持主張；立場題須處理對方最強論據，再衡量輕重。']].map(([t,p])=>`<div class="card"><h3>${t}</h3><p>${p}</p></div>`).join('')}</div><p class="source">離線版：${esc(D.updated||'2026-11-01')}。閱讀內容及已收錄地圖毋須連線；點擊原始網站來源則需網絡。目標為 5** 層次的歷史分析能力，並非成績保證。</p>`}
 function courses(){setHash('courses');$('#main').innerHTML=`<div class="eyebrow">DSE COURSE INDEX</div><h1>${onlySaved?'我的收藏':filter==='全部'?'課題總索引':filter+'課題'}</h1><p>按目錄標籤篩選；搜尋會查找課內的史例與政策。</p><div class="grid">${visible().map(card).join('')||'<p class="empty">沒有相符課題。</p>'}</div>`}
-function openLesson(id){const l=D.lessons.find(x=>x.id===id);if(!l)return;current=l;tab='notes';setHash(id);renderLesson();updateIndex();closeMobileNav();window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}
+function openLesson(id){const l=D.lessons.find(x=>x.id===id);if(!l)return;current=l;tab='notes';setHash(id);renderLesson();updateIndex();closeMobileNav();window.scrollTo({top:0,behavior:'instant'})}
 function toggle(arr,id){let i=arr.indexOf(id);i<0?arr.push(id):arr.splice(i,1)}
 function renderLesson(){const l=current;$('#main').innerHTML=`<button class="mobileback" data-view="courses">← 返回課題索引</button><div class="lessonhead"><div class="eyebrow">DSE · ${esc(l.group)}</div><h1>${esc(l.title)}</h1><div class="chips">${(l.tags||[]).map(t=>`<button class="chip" data-tag="${esc(t)}"># ${esc(t)}</button>`).join('')}</div><p>${esc(l.summary)}</p><div class="actions"><button id="bookmark">${state.saved.includes(l.id)?'★ 已收藏':'☆ 收藏課題'}</button><button id="complete">${state.done.includes(l.id)?'✓ 已完成溫習':'○ 標記完成溫習'}</button><button id="print">列印本課</button></div></div><div class="tabs">${[['notes','精讀筆記'],['map','歷史地圖與事序'],['questions','DSE 資料與論證']].map(([k,v])=>`<button class="${tab===k?'active':''}" data-tab="${k}">${v}</button>`).join('')}</div><div id="lessonbody" class="reading"></div>`;$('#lessonbody').innerHTML=tab==='notes'?notes(l):tab==='map'?maps(l):questions(l);$('#bookmark').onclick=()=>{toggle(state.saved,l.id);persist();renderLesson();updateIndex()};$('#complete').onclick=()=>{toggle(state.done,l.id);persist();renderLesson();updateIndex()};$('#print').onclick=()=>window.print()}
 function inline(s){return esc(String(s??'').replace(/^\s*(?:→\s*)+/, '')).replace(/(^|\s)[•●·‧]\s*/g,'$1').replace(/([。；：︰，,])[‧·]\s*/g,'$1').replace(/([\u3400-\u9fff])[‧·](?=[\u3400-\u9fff])/g,'$1').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/`([^`]+)`/g,'<code>$1</code>')}
@@ -4532,7 +4532,7 @@ updateIndex();const hash=location.hash.slice(1);if(D.lessons.some(l=>l.id===hash
     const target = document.getElementById(button.dataset.sectionJump);
     if (!target) return;
     const top = target.getBoundingClientRect().top + scrollY - (innerWidth < 820 ? 54 : 118);
-    scrollTo({top: Math.max(0, top), behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+    scrollTo({top: Math.max(0, top), behavior: "instant"});
     document.querySelectorAll("[data-section-jump]").forEach((item) => item.classList.toggle("is-active", item === button));
   }, true);
 
