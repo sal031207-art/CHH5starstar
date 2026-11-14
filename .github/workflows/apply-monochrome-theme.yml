@@ -1,0 +1,38 @@
+name: Apply CHH5starstar monochrome theme
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/apply-monochrome-theme.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  theme:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inject theme into existing large HTML without replacing its contents
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          html = Path('index.html')
+          s = html.read_text(encoding='utf-8')
+          begin = '<!-- monochrome-ios-theme:start -->'
+          end = '<!-- monochrome-ios-theme:end -->'
+          css = "\n/* CHH5starstar · neutral Apple monochrome theme */\n:root {\n  color-scheme:light;\n  --primary:#242428;--primary-color:#242428;--accent:#45454C;\n  --accent-color:#45454C;--secondary:#696970;--brand:#242428;\n  --jade:#45454C;--green:#45454C;--blue:#45454C;\n  --bg:#F5F5F7;--background:#F5F5F7;--background-color:#F5F5F7;\n  --surface:#FFFFFF;--card-bg:#FFFFFF;--panel-bg:#FFFFFF;\n  --text:#1D1D1F;--text-color:#1D1D1F;--text-primary:#1D1D1F;\n  --muted:#6E6E73;--border:#E5E5EA;--border-color:#E5E5EA;\n}\nhtml{scroll-behavior:smooth}\nbody{background-color:#F5F5F7;color:#1D1D1F;font-family:-apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"PingFang HK\",\"Noto Sans TC\",sans-serif}\n:is(header,nav,aside,footer){border-color:#E5E5EA}\n:is(.navbar,.topbar,.site-header,.app-header,.sidebar,.side-nav,.bottom-nav,.mobile-nav,.tab-bar){background-color:#F9F9FB;color:#242428;border-color:#E5E5EA}\n:is(.card,.course-card,.topic-card,.lesson-card,.panel,.tile,.modal-content,.dialog-content){background-color:#FFFFFF;border-color:#E5E5EA;border-radius:18px;box-shadow:0 5px 25px rgba(0,0,0,.05)}\n:is(.logo,.brand-icon,.brand-mark,.logo-mark,.app-logo){background-color:#29292D;background-image:none;color:#FFFFFF;box-shadow:none}\n:is(.logo,.brand-icon,.brand-mark,.logo-mark,.app-logo) :is(svg,path,rect){color:inherit}\n:is(.nav-link,.tab,.menu-item,.sidebar-link,.bottom-nav-item):is(.active,.selected,[aria-current=\"page\"],[aria-selected=\"true\"]){background-color:#E8E8ED;color:#1D1D1F;box-shadow:none}\n:is(button,.btn,a.button,[role=\"button\"]){accent-color:#45454C}\n:is(.btn-primary,.primary-button,button.primary,button.active,.button-primary){background:#29292D;color:#FFFFFF;border-color:#29292D;box-shadow:none}\n:is(.btn-primary,.primary-button,button.primary,.button-primary):hover{background:#48484E}\n:focus-visible{outline:2px solid #8E8E93;outline-offset:3px}\n@media(prefers-color-scheme:dark){\n:root{color-scheme:dark;--primary:#F0F0F3;--primary-color:#F0F0F3;--accent:#C7C7CE;--accent-color:#C7C7CE;--secondary:#AEAEB2;--brand:#F0F0F3;--jade:#AEAEB2;--green:#AEAEB2;--blue:#AEAEB2;--bg:#161618;--background:#161618;--background-color:#161618;--surface:#2C2C30;--card-bg:#2C2C30;--panel-bg:#2C2C30;--text:#F5F5F7;--text-color:#F5F5F7;--text-primary:#F5F5F7;--muted:#AEAEB2;--border:#48484E;--border-color:#48484E}\nbody{background-color:#161618;color:#F5F5F7}\n:is(header,nav,aside,footer){border-color:#48484E}\n:is(.navbar,.topbar,.site-header,.app-header,.sidebar,.side-nav,.bottom-nav,.mobile-nav,.tab-bar){background-color:#252529;color:#F5F5F7;border-color:#48484E}\n:is(.card,.course-card,.topic-card,.lesson-card,.panel,.tile,.modal-content,.dialog-content){background-color:#2C2C30;color:#F5F5F7;border-color:#48484E;box-shadow:none}\n:is(.logo,.brand-icon,.brand-mark,.logo-mark,.app-logo){background:#39393E;color:#F5F5F7;box-shadow:none}\n:is(.nav-link,.tab,.menu-item,.sidebar-link,.bottom-nav-item):is(.active,.selected,[aria-current=\"page\"],[aria-selected=\"true\"]){background:#44444C;color:#FFFFFF;box-shadow:none}\n:is(.btn-primary,.primary-button,button.primary,button.active,.button-primary){background:#F0F0F3;color:#1C1C20;border-color:#F0F0F3}\n:is(.btn-primary,.primary-button,button.primary,.button-primary):hover{background:#D1D1D6}\n:focus-visible{outline-color:#D1D1D6}\n}\n"
+          block = begin + '\n<style id="monochrome-ios-theme">\n' + css + '\n</style>\n' + end
+          if begin in s and end in s:
+              s = s[:s.index(begin)] + block + s[s.index(end)+len(end):]
+          elif '</head>' in s:
+              s = s.replace('</head>', block + '\n</head>', 1)
+          else:
+              raise ValueError('index.html has no </head> tag')
+          html.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit HTML update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet || (git commit -m "Apply Apple monochrome theme to CHH5starstar" && git push)
