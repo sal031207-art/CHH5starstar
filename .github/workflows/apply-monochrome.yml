@@ -1,0 +1,35 @@
+name: Apply coordinated monochrome theme
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-monochrome.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  apply-theme:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Update CHH5starstar theme without rewriting content
+        shell: bash
+        run: |
+          python3 - <<'PY'
+            from pathlib import Path
+            p=Path('index.html')
+            s=p.read_text(encoding='utf-8')
+            marker='/* Shared Dashboard monochrome palette */'
+            if marker not in s:
+                s=s.replace('</style>',marker+'\n'+":root{--ink:#1D1D1F;--green:#29292D;--muted:#6E6E73;--paper:#F5F5F7;--line:#E5E5EA;--gold:#6E6E73;color-scheme:light}\nbody{background:#F5F5F7;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,\"PingFang TC\",\"Noto Sans TC\",sans-serif}\nheader{background:rgba(255,255,255,.93);border-color:var(--line);backdrop-filter:blur(22px)}\n.seal{background:#222226;color:#fff;border:1px solid #44444C;border-radius:13px}\naside{background:#EFEFF2;border-color:var(--line)}\n.search,.card,details,.actions button,table,textarea{background:#FFF;border-color:var(--line);border-radius:12px}\n.hero{background:#252529;color:#F5F5F7;border-radius:20px}.hero p{color:#D2D2D8}\n.primary,.filters .active,#toast{background:#36363B;color:#FFF;border-radius:10px}\n.indexitem:hover,.indexitem.selected,.chip,th,.callout,.banner,.conclusion,.materials,.historyMap figcaption,.mapkey div{background:#E8E8ED;color:#1D1D1F}\n.tabs{background:var(--paper)}.tabs .active{border-bottom-color:#6E6E73}\n.card:hover{border-color:#8E8E93}.eyebrow,.card .num,.event b,.arglabel,.websources{color:#52525A}\n@media(prefers-color-scheme:dark){\n:root{--ink:#F5F5F7;--green:#D2D2D8;--muted:#AEAEB2;--paper:#161618;--line:#48484A;--gold:#C2C2C9;color-scheme:dark}\nbody{background:#161618;color:var(--ink)}\nheader{background:rgba(37,37,41,.93);border-color:var(--line)}\n.seal{background:#39393E;color:#F5F5F7;border-color:#575760}\naside{background:#202024;border-color:var(--line)}\n.search,.card,details,.actions button,table,textarea{background:#2C2C30;color:#F5F5F7;border-color:#48484A}\n.search input{color:#F5F5F7}\n.hero{background:#303035;color:#FFF}.hero p{color:#D2D2D8}\n.primary,.filters .active,#toast{background:#E8E8ED;color:#1D1D1F}\n.indexitem:hover,.indexitem.selected,.chip,th,.callout,.banner,.conclusion,.materials,.historyMap figcaption,.mapkey div{background:#39393F;color:#F5F5F7}\n.tabs{background:#161618}.card:hover{border-color:#8E8E93}\n.eyebrow,.card .num,.event b,.arglabel,.websources{color:#D2D2D8}\n.historyMap,.historyMap img{background:#2C2C30}\n}"+'\n</style>',1)
+                s=s.replace('<meta name="theme-color" content="#163d34">','<meta name="theme-color" content="#F5F5F7">',1)
+                p.write_text(s,encoding='utf-8')
+            
+          PY
+      - name: Commit styling update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if ! git diff --cached --quiet; then git commit -m "Apply Dashboard monochrome color palette"; git push; fi
