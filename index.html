@@ -2216,6 +2216,12 @@ aside {
   box-shadow: 0 0 0 3px rgba(40, 96, 82, .1);
 }
 
+@media (forced-colors: none) {
+  .search input:focus-visible {
+    outline: none;
+  }
+}
+
 .search input {
   font-size: 12.5px;
 }
@@ -3271,12 +3277,6 @@ button.chip:hover {
 .examSearch {
   max-width: 620px;
   margin: 22px 0 13px;
-}
-
-@media (forced-colors: none) {
-  .examSearch input:focus-visible {
-    outline: none;
-  }
 }
 
 #imageViewer {
